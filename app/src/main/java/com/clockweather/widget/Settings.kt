@@ -2,12 +2,27 @@ package com.clockweather.widget
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Typeface
 import java.util.Locale
 
 /** Text colour pairs (setting 1.3). Forecast outline icons follow [main]. */
 enum class FontScheme(val main: Int, val secondary: Int) {
     BLACK(0xFF1A1A1A.toInt(), 0xFF6B6B6B.toInt()),
     WHITE(0xFFFFFFFF.toInt(), 0xFFB9B9B9.toInt()),
+}
+
+/** Fonts for the main cluster's digits (system families; layouts from tools/gen_font_layouts.py). */
+enum class ClockFont(val label: String, val family: String, val layout: Int) {
+    DEFAULT("Default", "sans-serif", R.layout.widget),
+    LIGHT("Light", "sans-serif-light", R.layout.widget_font_light),
+    THIN("Thin", "sans-serif-thin", R.layout.widget_font_thin),
+    MEDIUM("Medium", "sans-serif-medium", R.layout.widget_font_medium),
+    BLACK("Black", "sans-serif-black", R.layout.widget_font_black),
+    CONDENSED("Condensed", "sans-serif-condensed", R.layout.widget_font_condensed),
+    SERIF("Serif", "serif", R.layout.widget_font_serif),
+    MONOSPACE("Monospace", "monospace", R.layout.widget_font_mono);
+
+    val typeface: Typeface get() = Typeface.create(family, Typeface.NORMAL)
 }
 
 enum class ForecastMode { DAILY, HOURLY }
@@ -32,6 +47,11 @@ class Settings(context: Context) {
     var fontScheme: FontScheme
         get() = enumOr(p.getString("font_scheme", null), FontScheme.BLACK)
         set(v) = p.edit().putString("font_scheme", v.name).apply()
+
+    // clock font for time, temperature and C/F mark
+    var clockFont: ClockFont
+        get() = enumOr(p.getString("clock_font", null), ClockFont.DEFAULT)
+        set(v) = p.edit().putString("clock_font", v.name).apply()
 
     // 1.4
     var outlineWhite: Boolean

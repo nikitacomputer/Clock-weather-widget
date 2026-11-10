@@ -79,6 +79,7 @@ class SettingsActivity : Activity() {
         bindRadio(R.id.outline_group, if (settings.outlineWhite) R.id.outline_white else R.id.outline_black) {
             settings.outlineWhite = it == R.id.outline_white
         }
+        setupClockFont()
         setupRadius()
         setupOutlineWidth()
         setupApps()
@@ -252,6 +253,37 @@ class SettingsActivity : Activity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
                 if (settings.cornerRadius != Settings.RADII[pos]) {
                     settings.cornerRadius = Settings.RADII[pos]
+                    changed()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    // ---------- clock font ----------
+    private fun setupClockFont() {
+        val spinner = findViewById<Spinner>(R.id.font_spinner)
+        val fonts = ClockFont.values()
+        // each entry shows a sample time in its own font
+        spinner.adapter = object : ArrayAdapter<ClockFont>(this, android.R.layout.simple_spinner_dropdown_item, fonts) {
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup) =
+                style(super.getView(position, convertView, parent), fonts[position])
+            override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup) =
+                style(super.getDropDownView(position, convertView, parent), fonts[position])
+            private fun style(v: View, f: ClockFont): View {
+                (v as TextView).apply {
+                    text = "12:45   ${f.label}"
+                    typeface = f.typeface
+                    textSize = 18f
+                }
+                return v
+            }
+        }
+        spinner.setSelection(settings.clockFont.ordinal)
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                if (settings.clockFont != fonts[pos]) {
+                    settings.clockFont = fonts[pos]
                     changed()
                 }
             }

@@ -114,6 +114,15 @@ class WidgetRenderTest {
         save(render(349f), "daily_w1")
     }
 
+    @Test
+    fun rendersFonts() {
+        val s = Settings(ctx)
+        for (f in ClockFont.values()) {
+            s.clockFont = f
+            save(render(276f), "font_${f.name.lowercase()}")
+        }
+    }
+
     private fun sampleJson(): JSONObject {
         val now = LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.HOURS)
         val codes = listOf(0, 1, 2, 3, 45, 51, 61, 65, 95, 71, 66, 99)

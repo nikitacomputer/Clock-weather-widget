@@ -28,7 +28,9 @@ A live preview at the top shows each change.
       The current-weather icon is always in color with black outlines.
    4. Outline and separator color: black or white
    5. Corner radius: 0, 5, 10, 15, 20, 25 or 30 dp
-   6. Outline width: 1–5 dp (default 2); the separator uses the same width
+   6. Clock font for the time and temperature: Default, Light, Thin, Medium, Black, Condensed,
+      Serif, Monospace (built-in Android fonts; layouts come from `tools/gen_font_layouts.py`)
+   7. Outline width: 1–5 dp (default 2); the separator uses the same width
 2. Default launch apps
    1. Clock app (default: the system clock app)
    2. Weather app (default: Google Weather, which means the Pixel Weather app, then the Google app's

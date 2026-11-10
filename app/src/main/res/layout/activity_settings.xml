@@ -106,6 +106,10 @@
             </RadioGroup>
             <TextView style="@style/Hint" android:text="Forecast icons follow the main font color. The current-weather icon is always in color with black outlines." />
 
+            <TextView style="@style/ItemTitle" android:text="Clock font" />
+            <Spinner android:id="@+id/font_spinner" android:layout_width="wrap_content" android:layout_height="wrap_content" />
+            <TextView style="@style/Hint" android:text="Used for the time and current temperature." />
+
             <TextView style="@style/ItemTitle" android:text="Outline and separator color" />
             <RadioGroup android:id="@+id/outline_group" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
                 <RadioButton android:id="@+id/outline_black" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Black" />

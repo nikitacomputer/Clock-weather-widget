@@ -69,7 +69,7 @@ object WidgetRenderer {
     }
 
     fun render(context: Context, size: SizeF, settings: Settings, snapshot: Snapshot?): RemoteViews {
-        val rv = RemoteViews(context.packageName, R.layout.widget)
+        val rv = RemoteViews(context.packageName, settings.clockFont.layout)
         val density = context.resources.displayMetrics.density
         fun px(dp: Float) = (dp * density).roundToInt()
 
@@ -96,7 +96,8 @@ object WidgetRenderer {
         val currentWx = snapshot?.let { Wx.of(it.current) }
 
         // ---- decide layout ----
-        var m = MainMetrics.compute(hc, tempText, currentWx?.color)
+        val font = settings.clockFont.typeface
+        var m = MainMetrics.compute(hc, tempText, currentWx?.color, font)
         val minColumn = (hc * 0.42f).coerceIn(30f, 60f)
         val stripe = wc - m.width - outline // separator is as wide as the outline
         val showForecast = stripe >= minColumn
@@ -112,7 +113,7 @@ object WidgetRenderer {
         rv.setTextViewTextSize(R.id.current_temp, COMPLEX_UNIT_DIP, m.textSize)
         rv.setTextColor(R.id.current_temp, scheme.secondary)
         rv.setTextViewText(R.id.current_temp, tempText)
-        applyUnitMark(rv, m.textSize, if (settings.fahrenheit) "F" else "C", scheme.secondary, snapshot != null)
+        applyUnitMark(rv, font, m.textSize, if (settings.fahrenheit) "F" else "C", scheme.secondary, snapshot != null)
         if (currentWx != null) {
             rv.setViewVisibility(R.id.current_icon, View.VISIBLE)
             rv.setImageViewResource(R.id.current_icon, currentWx.color) // colour icon, always black outlines
@@ -229,10 +230,10 @@ object WidgetRenderer {
         }
 
         companion object {
-            fun compute(hc: Float, tempText: String, iconRes: Int?): MainMetrics {
+            fun compute(hc: Float, tempText: String, iconRes: Int?, font: Typeface): MainMetrics {
                 // Digit height (top of digits to baseline) and the icon's artwork share this height.
                 val digitHeight = hc * 0.34f
-                val f = fontMetrics()
+                val f = fontMetrics(font)
                 val text = (digitHeight / f.digitHeightPerSize).coerceIn(12f, 64f)
                 val dh = f.digitHeightPerSize * text
                 // In a vertically centred text box, where the middle of the digits sits.
@@ -249,7 +250,7 @@ object WidgetRenderer {
                 }
                 return MainMetrics(
                     textSize = text, edge = hc * 0.11f, gapAfterTime = hc * 0.12f, gapAfterIcon = hc * 0.06f,
-                    timeW = measure("00:00", text), tempW = measure(tempText, text),
+                    timeW = measure("00:00", text, font), tempW = measure(tempText, text, font),
                     iconSize = size, iconPadLeft = padL, iconPadRight = padR, iconShift = shift,
                     hasIcon = iconRes != null,
                 )
@@ -261,12 +262,13 @@ object WidgetRenderer {
      * Small "C"/"F" centred under the degree sign, sitting on the same baseline as the digits, so
      * it adds no width to the cluster.
      */
-    private fun applyUnitMark(rv: RemoteViews, tempSize: Float, unit: String, color: Int, visible: Boolean) {
+    private fun applyUnitMark(rv: RemoteViews, font: Typeface, tempSize: Float, unit: String, color: Int, visible: Boolean) {
         if (!visible) {
             rv.setViewVisibility(R.id.current_unit, View.GONE)
             return
         }
         val m: FloatArray = synchronized(paint) {
+            paint.typeface = font
             paint.textSize = 100f
             val deg = android.graphics.Rect(); paint.getTextBounds("°", 0, 1, deg)
             val cap = android.graphics.Rect(); paint.getTextBounds(unit, 0, 1, cap)
@@ -292,10 +294,12 @@ object WidgetRenderer {
 
     private class FontMetrics(val digitHeightPerSize: Float, val digitMidOffsetPerSize: Float)
 
-    @Volatile private var cachedFont: FontMetrics? = null
+    private val fontCache = HashMap<Typeface, FontMetrics>()
 
     /** Measured from the device font: digit height and digit-centre offset per 1dp of text size. */
-    private fun fontMetrics(): FontMetrics = cachedFont ?: synchronized(paint) {
+    private fun fontMetrics(font: Typeface): FontMetrics = synchronized(paint) {
+        fontCache[font]?.let { return it }
+        paint.typeface = font
         paint.textSize = 100f
         val bounds = android.graphics.Rect()
         paint.getTextBounds("0123456789", 0, 10, bounds)
@@ -303,12 +307,13 @@ object WidgetRenderer {
         // includeFontPadding=false: the text box spans ascent..descent and is centred vertically.
         val boxMid = (fm.ascent + fm.descent) / 2f
         val digitMid = (bounds.top + bounds.bottom) / 2f
-        FontMetrics((bounds.bottom - bounds.top) / 100f, (digitMid - boxMid) / 100f).also { cachedFont = it }
+        FontMetrics((bounds.bottom - bounds.top) / 100f, (digitMid - boxMid) / 100f).also { fontCache[font] = it }
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = Typeface.SANS_SERIF }
 
-    private fun measure(text: String, sizeDp: Float): Float = synchronized(paint) {
+    private fun measure(text: String, sizeDp: Float, font: Typeface = Typeface.SANS_SERIF): Float = synchronized(paint) {
+        paint.typeface = font
         paint.textSize = sizeDp
         paint.measureText(text)
     }
