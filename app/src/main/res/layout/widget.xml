@@ -62,15 +62,33 @@
                     android:layout_height="40dp"
                     android:scaleType="fitCenter" />
 
-                <TextView
-                    android:id="@+id/current_temp"
+                <!-- temperature with a small C/F tucked under the degree sign -->
+                <FrameLayout
+                    android:id="@+id/temp_box"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="sans-serif"
-                    android:includeFontPadding="false"
-                    android:maxLines="1"
-                    android:textColor="@color/secondary_dark"
-                    android:textSize="28sp" />
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/current_temp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="@color/secondary_dark"
+                        android:textSize="28sp" />
+
+                    <TextView
+                        android:id="@+id/current_unit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|end"
+                        android:fontFamily="sans-serif"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textColor="@color/secondary_dark"
+                        android:textSize="10sp" />
+                </FrameLayout>
             </LinearLayout>
         </LinearLayout>
 

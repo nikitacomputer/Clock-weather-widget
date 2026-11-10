@@ -11,7 +11,7 @@
         android:layout_width="48dp"
         android:layout_height="72dp"
         android:layout_gravity="center"
-        android:gravity="center_horizontal"
+        android:gravity="center"
         android:orientation="vertical"
         android:rotation="90">
 

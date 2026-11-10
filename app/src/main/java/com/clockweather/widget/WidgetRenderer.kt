@@ -87,33 +87,39 @@ object WidgetRenderer {
 
         val scheme = settings.fontScheme
         val tempText = snapshot?.let { formatTemp(it.current.tempC, settings.fahrenheit) } ?: "--°"
+        val currentWx = snapshot?.let { Wx.of(it.current) }
 
         // ---- decide layout ----
-        var m = MainMetrics.compute(hc, tempText)
+        var m = MainMetrics.compute(hc, tempText, currentWx?.color)
         val minColumn = (hc * 0.42f).coerceIn(30f, 60f)
         val stripe = wc - m.width - SEPARATOR
         val showForecast = stripe >= minColumn
         if (!showForecast) m = m.scaledToFit(wc)
 
         // ---- main cluster ----
+        // Time and temperature share one font size; the icon is scaled and shifted so its drawn
+        // artwork spans exactly from the top of the digits to their baseline.
         rv.setViewLayoutWidth(R.id.main_cluster, if (showForecast) m.width else wc, COMPLEX_UNIT_DIP)
         rv.setViewPadding(R.id.main_cluster, px(m.edge), 0, px(m.edge), 0)
         rv.setTextViewTextSize(R.id.time, COMPLEX_UNIT_DIP, m.textSize)
         rv.setTextColor(R.id.time, scheme.main)
-        rv.setViewLayoutMargin(R.id.time, RemoteViews.MARGIN_END, m.gapAfterTime, COMPLEX_UNIT_DIP)
-        rv.setViewLayoutWidth(R.id.current_icon, m.iconSize, COMPLEX_UNIT_DIP)
-        rv.setViewLayoutHeight(R.id.current_icon, m.iconSize, COMPLEX_UNIT_DIP)
-        rv.setViewLayoutMargin(R.id.current_icon, RemoteViews.MARGIN_END, m.gapAfterIcon, COMPLEX_UNIT_DIP)
         rv.setTextViewTextSize(R.id.current_temp, COMPLEX_UNIT_DIP, m.textSize)
         rv.setTextColor(R.id.current_temp, scheme.secondary)
         rv.setTextViewText(R.id.current_temp, tempText)
-        if (snapshot != null) {
-            val wx = Wx.of(snapshot.current)
+        applyUnitMark(rv, m.textSize, if (settings.fahrenheit) "F" else "C", scheme.secondary, snapshot != null)
+        if (currentWx != null) {
             rv.setViewVisibility(R.id.current_icon, View.VISIBLE)
-            rv.setImageViewResource(R.id.current_icon, wx.color) // colour icon, always black outlines
-            rv.setContentDescription(R.id.current_icon, wx.label)
+            rv.setImageViewResource(R.id.current_icon, currentWx.color) // colour icon, always black outlines
+            rv.setContentDescription(R.id.current_icon, currentWx.label)
+            rv.setViewLayoutWidth(R.id.current_icon, m.iconSize, COMPLEX_UNIT_DIP)
+            rv.setViewLayoutHeight(R.id.current_icon, m.iconSize, COMPLEX_UNIT_DIP)
+            rv.setViewLayoutMargin(R.id.current_icon, RemoteViews.MARGIN_START, m.iconMarginStart, COMPLEX_UNIT_DIP)
+            rv.setViewLayoutMargin(R.id.current_icon, RemoteViews.MARGIN_END, m.iconMarginEnd, COMPLEX_UNIT_DIP)
+            rv.setViewLayoutMargin(R.id.current_icon, RemoteViews.MARGIN_TOP, max(m.iconShift, 0f), COMPLEX_UNIT_DIP)
+            rv.setViewLayoutMargin(R.id.current_icon, RemoteViews.MARGIN_BOTTOM, max(-m.iconShift, 0f), COMPLEX_UNIT_DIP)
         } else {
             rv.setViewVisibility(R.id.current_icon, View.GONE)
+            rv.setViewLayoutMargin(R.id.temp_box, RemoteViews.MARGIN_START, m.gapAfterTime, COMPLEX_UNIT_DIP)
         }
 
         // ---- taps ----
@@ -149,11 +155,15 @@ object WidgetRenderer {
         rv.setOnClickPendingIntent(R.id.forecast_container, weatherTap)
         rv.setPendingIntentTemplate(R.id.forecast_list, launchTemplate(context))
 
+        // Columns: day/hour, icon and temperature packed tightly and centred vertically, leaving
+        // generous top and bottom margins.
         val items = snapshot?.forecast.orEmpty()
-        val labelSize = min(hc * 0.125f, fitText(items.map { it.label }, colW * 0.92f))
+        val labelSize = min(hc * 0.12f, fitText(items.map { it.label }, colW * 0.92f))
         val temps = items.map { formatTemp(it.conditions.tempC, settings.fahrenheit) }
-        val tempSize = min(hc * 0.18f, fitText(temps, colW * 0.92f))
-        val iconSize = min(hc * 0.42f, colW * 0.85f)
+        val tempSize = min(hc * 0.17f, fitText(temps, colW * 0.92f))
+        val iconSize = min(hc * 0.38f, colW * 0.85f)
+        // the outline artwork has ~7% empty space above and below; pull neighbours into it
+        val iconMargin = hc * 0.02f - iconSize * 0.07f
 
         val builder = RemoteViews.RemoteCollectionItems.Builder().setHasStableIds(true).setViewTypeCount(1)
         items.forEachIndexed { i, item ->
@@ -161,22 +171,22 @@ object WidgetRenderer {
             v.setViewLayoutHeight(R.id.item_root, colW, COMPLEX_UNIT_DIP)
             v.setViewLayoutWidth(R.id.item_content, colW, COMPLEX_UNIT_DIP)
             v.setViewLayoutHeight(R.id.item_content, hc, COMPLEX_UNIT_DIP)
-            v.setViewPadding(R.id.item_content, 0, px(hc * 0.075f), 0, 0)
-            // ~15% day/hour, ~45% icon, ~25% temperature
-            v.setViewLayoutHeight(R.id.item_label, hc * 0.15f, COMPLEX_UNIT_DIP)
+
+            // Text boxes are trimmed to about one em: only empty ascent/descent space is cut.
+            v.setViewLayoutHeight(R.id.item_label, labelSize * 1.05f, COMPLEX_UNIT_DIP)
             v.setTextViewTextSize(R.id.item_label, COMPLEX_UNIT_DIP, labelSize)
             v.setTextColor(R.id.item_label, scheme.secondary)
             v.setTextViewText(R.id.item_label, item.label)
 
             val wx = Wx.of(item.conditions)
-            v.setViewLayoutHeight(R.id.item_icon, hc * 0.45f, COMPLEX_UNIT_DIP)
-            val iconPad = px(max(0f, (hc * 0.45f - iconSize) / 2f))
-            v.setViewPadding(R.id.item_icon, 0, iconPad, 0, iconPad)
+            v.setViewLayoutHeight(R.id.item_icon, iconSize, COMPLEX_UNIT_DIP)
+            v.setViewLayoutMargin(R.id.item_icon, RemoteViews.MARGIN_TOP, iconMargin, COMPLEX_UNIT_DIP)
+            v.setViewLayoutMargin(R.id.item_icon, RemoteViews.MARGIN_BOTTOM, iconMargin, COMPLEX_UNIT_DIP)
             v.setImageViewResource(R.id.item_icon, wx.outline)
             v.setInt(R.id.item_icon, "setColorFilter", scheme.main) // outline icons follow main colour
             v.setContentDescription(R.id.item_icon, wx.label)
 
-            v.setViewLayoutHeight(R.id.item_temp, hc * 0.25f, COMPLEX_UNIT_DIP)
+            v.setViewLayoutHeight(R.id.item_temp, tempSize * 1.0f, COMPLEX_UNIT_DIP)
             v.setTextViewTextSize(R.id.item_temp, COMPLEX_UNIT_DIP, tempSize)
             v.setTextColor(R.id.item_temp, scheme.main)
             v.setTextViewText(R.id.item_temp, temps[i])
@@ -190,29 +200,103 @@ object WidgetRenderer {
 
     /** Sizes of the fixed left cluster, all in dp. */
     private data class MainMetrics(
-        val textSize: Float, val iconSize: Float, val edge: Float,
-        val gapAfterTime: Float, val gapAfterIcon: Float, val timeW: Float, val tempW: Float,
+        val textSize: Float, val edge: Float, val gapAfterTime: Float, val gapAfterIcon: Float,
+        val timeW: Float, val tempW: Float,
+        /** icon box size, horizontal artwork padding inside the box, and vertical shift */
+        val iconSize: Float, val iconPadLeft: Float, val iconPadRight: Float, val iconShift: Float,
+        val hasIcon: Boolean,
     ) {
-        val width get() = edge + timeW + gapAfterTime + iconSize + gapAfterIcon + tempW + edge + 2f
+        val iconMarginStart get() = gapAfterTime - iconPadLeft
+        val iconMarginEnd get() = gapAfterIcon - iconPadRight
+        val width
+            get() = edge + timeW + gapAfterTime + tempW + edge + 2f +
+                (if (hasIcon) iconSize - iconPadLeft - iconPadRight + gapAfterIcon else 0f)
 
         fun scaledToFit(available: Float): MainMetrics {
             if (width <= available) return this
             val s = available / width
-            return MainMetrics(textSize * s, iconSize * s, edge * s, gapAfterTime * s, gapAfterIcon * s, timeW * s, tempW * s)
+            return MainMetrics(
+                textSize * s, edge * s, gapAfterTime * s, gapAfterIcon * s, timeW * s, tempW * s,
+                iconSize * s, iconPadLeft * s, iconPadRight * s, iconShift * s, hasIcon,
+            )
         }
 
         companion object {
-            fun compute(hc: Float, tempText: String): MainMetrics {
-                val text = (hc * 0.36f).coerceIn(14f, 46f)
-                val icon = (hc * 0.54f).coerceIn(18f, 64f)
-                // Same font size for time and temperature; widths measured at that size.
+            fun compute(hc: Float, tempText: String, iconRes: Int?): MainMetrics {
+                // Digit height (top of digits to baseline) and the icon's artwork share this height.
+                val digitHeight = hc * 0.34f
+                val f = fontMetrics()
+                val text = (digitHeight / f.digitHeightPerSize).coerceIn(12f, 64f)
+                val dh = f.digitHeightPerSize * text
+                // In a vertically centred text box, where the middle of the digits sits.
+                val digitMid = f.digitMidOffsetPerSize * text
+
+                var size = 0f; var padL = 0f; var padR = 0f; var shift = 0f
+                if (iconRes != null) {
+                    val b = IconBounds.of(iconRes) // left, top, right, bottom in a 48-unit viewport
+                    size = (dh * 48f / (b[3] - b[1])).coerceAtMost(hc * 1.2f)
+                    padL = b[0] / 48f * size
+                    padR = (48f - b[2]) / 48f * size
+                    val artMid = ((b[1] + b[3]) / 2f - 24f) / 48f * size
+                    shift = digitMid - artMid
+                }
                 return MainMetrics(
-                    textSize = text, iconSize = icon, edge = hc * 0.11f,
-                    gapAfterTime = hc * 0.10f, gapAfterIcon = hc * 0.03f,
+                    textSize = text, edge = hc * 0.11f, gapAfterTime = hc * 0.12f, gapAfterIcon = hc * 0.06f,
                     timeW = measure("00:00", text), tempW = measure(tempText, text),
+                    iconSize = size, iconPadLeft = padL, iconPadRight = padR, iconShift = shift,
+                    hasIcon = iconRes != null,
                 )
             }
         }
+    }
+
+    /**
+     * Small "C"/"F" centred under the degree sign, sitting on the same baseline as the digits, so
+     * it adds no width to the cluster.
+     */
+    private fun applyUnitMark(rv: RemoteViews, tempSize: Float, unit: String, color: Int, visible: Boolean) {
+        if (!visible) {
+            rv.setViewVisibility(R.id.current_unit, View.GONE)
+            return
+        }
+        val m: FloatArray = synchronized(paint) {
+            paint.textSize = 100f
+            val deg = android.graphics.Rect(); paint.getTextBounds("°", 0, 1, deg)
+            val cap = android.graphics.Rect(); paint.getTextBounds(unit, 0, 1, cap)
+            // degree glyph: space between its bottom and the baseline, its horizontal centre
+            // measured from the end of the string, and the unit letter's cap height/width
+            floatArrayOf(
+                -deg.bottom / 100f, (paint.measureText("°") - (deg.left + deg.right) / 2f) / 100f,
+                -cap.top / 100f, paint.measureText(unit) / 100f, -paint.fontMetrics.ascent / 100f,
+            )
+        }
+        val (spaceBelowDeg, degCentreFromEnd, capPerSize, unitWPerSize, ascentPerSize) = m
+        val unitSize = ((spaceBelowDeg - 0.10f) * tempSize / capPerSize).coerceIn(6f, tempSize * 0.45f)
+        // same baseline as the temperature: shift the small text box down by the ascent difference
+        val top = ascentPerSize * (tempSize - unitSize)
+        val end = degCentreFromEnd * tempSize - unitWPerSize * unitSize / 2f
+        rv.setViewVisibility(R.id.current_unit, View.VISIBLE)
+        rv.setTextViewText(R.id.current_unit, unit)
+        rv.setTextViewTextSize(R.id.current_unit, COMPLEX_UNIT_DIP, unitSize)
+        rv.setTextColor(R.id.current_unit, color)
+        rv.setViewLayoutMargin(R.id.current_unit, RemoteViews.MARGIN_TOP, top, COMPLEX_UNIT_DIP)
+        rv.setViewLayoutMargin(R.id.current_unit, RemoteViews.MARGIN_END, end, COMPLEX_UNIT_DIP)
+    }
+
+    private class FontMetrics(val digitHeightPerSize: Float, val digitMidOffsetPerSize: Float)
+
+    @Volatile private var cachedFont: FontMetrics? = null
+
+    /** Measured from the device font: digit height and digit-centre offset per 1dp of text size. */
+    private fun fontMetrics(): FontMetrics = cachedFont ?: synchronized(paint) {
+        paint.textSize = 100f
+        val bounds = android.graphics.Rect()
+        paint.getTextBounds("0123456789", 0, 10, bounds)
+        val fm = paint.fontMetrics
+        // includeFontPadding=false: the text box spans ascent..descent and is centred vertically.
+        val boxMid = (fm.ascent + fm.descent) / 2f
+        val digitMid = (bounds.top + bounds.bottom) / 2f
+        FontMetrics((bounds.bottom - bounds.top) / 100f, (digitMid - boxMid) / 100f).also { cachedFont = it }
     }
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = Typeface.SANS_SERIF }
