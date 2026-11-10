@@ -101,9 +101,17 @@ class WidgetRenderTest {
         s.fontScheme = FontScheme.WHITE
         s.outlineWhite = true
         s.cornerRadius = 20
+        s.outlineWidth = 5
         s.bgColor = 0xFF3B4A5A.toInt()
         s.opacity = 70
-        save(render(422f), "hourly_white_r20")
+        save(render(422f), "hourly_white_r20_w5")
+        s.outlineWidth = 1
+        s.fontScheme = FontScheme.BLACK
+        s.outlineWhite = false
+        s.bgColor = Settings.DEFAULT_BG
+        s.opacity = 100
+        s.cornerRadius = 0
+        save(render(349f), "daily_w1")
     }
 
     private fun sampleJson(): JSONObject {

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 2dp outline, tinted black or white at runtime. -->
+<!-- 3dp outline, 20dp corners; tinted black or white at runtime. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
     <!-- explicit transparent fill: without it a colour filter makes GradientDrawable fill the shape -->
     <solid android:color="#00000000" />
-    <stroke android:width="2dp" android:color="#FFFFFFFF" />
-    <corners android:radius="5dp" />
+    <stroke android:width="3dp" android:color="#FFFFFFFF" />
+    <corners android:radius="20dp" />
 </shape>

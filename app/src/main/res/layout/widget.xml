@@ -19,7 +19,7 @@
         android:layout_height="match_parent"
         android:importantForAccessibility="no"
         android:scaleType="fitXY"
-        android:src="@drawable/bg_outline_r0" />
+        android:src="@drawable/bg_outline_w2_r0" />
 
     <LinearLayout
         android:id="@+id/content"

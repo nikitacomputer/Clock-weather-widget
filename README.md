@@ -28,6 +28,7 @@ A live preview at the top shows each change.
       The current-weather icon is always in color with black outlines.
    4. Outline and separator color: black or white
    5. Corner radius: 0, 5, 10, 15, 20, 25 or 30 dp
+   6. Outline width: 1–5 dp (default 2); the separator uses the same width
 2. Default launch apps
    1. Clock app (default: the system clock app)
    2. Weather app (default: Google Weather, which means the Pixel Weather app, then the Google app's
@@ -50,7 +51,6 @@ Weather codes map to the 18 icons in `Wx.of()` (`Weather.kt`).
   rotated list so it covers the stripe exactly. `WidgetRenderTest` checks this geometry.
 * Icons are generated vector drawables. Edit `tools/gen_icons.py` and run
   `python3 tools/gen_icons.py` to regenerate `res/drawable/wx_*.xml`.
-* Outline and separator are 2 dp wide.
 
 ## Build
 ```

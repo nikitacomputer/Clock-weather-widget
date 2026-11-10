@@ -26,17 +26,19 @@ import kotlin.math.roundToInt
  *    [minColumn] wide, so the stripe scrolls until all 10 fit (≈8 cells).
  */
 object WidgetRenderer {
-    private const val OUTLINE = 2f
-    private const val SEPARATOR = 2f
     private const val MAX_ITEMS = 10
 
     private val RADIUS_FILL = intArrayOf(
         R.drawable.bg_fill_r0, R.drawable.bg_fill_r5, R.drawable.bg_fill_r10, R.drawable.bg_fill_r15,
         R.drawable.bg_fill_r20, R.drawable.bg_fill_r25, R.drawable.bg_fill_r30,
     )
-    private val RADIUS_OUTLINE = intArrayOf(
-        R.drawable.bg_outline_r0, R.drawable.bg_outline_r5, R.drawable.bg_outline_r10, R.drawable.bg_outline_r15,
-        R.drawable.bg_outline_r20, R.drawable.bg_outline_r25, R.drawable.bg_outline_r30,
+    /** [outline width 1..5 - 1][corner radius index] */
+    private val OUTLINE_DRAWABLES = arrayOf(
+        intArrayOf(R.drawable.bg_outline_w1_r0, R.drawable.bg_outline_w1_r5, R.drawable.bg_outline_w1_r10, R.drawable.bg_outline_w1_r15, R.drawable.bg_outline_w1_r20, R.drawable.bg_outline_w1_r25, R.drawable.bg_outline_w1_r30),
+        intArrayOf(R.drawable.bg_outline_w2_r0, R.drawable.bg_outline_w2_r5, R.drawable.bg_outline_w2_r10, R.drawable.bg_outline_w2_r15, R.drawable.bg_outline_w2_r20, R.drawable.bg_outline_w2_r25, R.drawable.bg_outline_w2_r30),
+        intArrayOf(R.drawable.bg_outline_w3_r0, R.drawable.bg_outline_w3_r5, R.drawable.bg_outline_w3_r10, R.drawable.bg_outline_w3_r15, R.drawable.bg_outline_w3_r20, R.drawable.bg_outline_w3_r25, R.drawable.bg_outline_w3_r30),
+        intArrayOf(R.drawable.bg_outline_w4_r0, R.drawable.bg_outline_w4_r5, R.drawable.bg_outline_w4_r10, R.drawable.bg_outline_w4_r15, R.drawable.bg_outline_w4_r20, R.drawable.bg_outline_w4_r25, R.drawable.bg_outline_w4_r30),
+        intArrayOf(R.drawable.bg_outline_w5_r0, R.drawable.bg_outline_w5_r5, R.drawable.bg_outline_w5_r10, R.drawable.bg_outline_w5_r15, R.drawable.bg_outline_w5_r20, R.drawable.bg_outline_w5_r25, R.drawable.bg_outline_w5_r30),
     )
 
     /** One RemoteViews per size the launcher reports (portrait / landscape …). */
@@ -76,11 +78,15 @@ object WidgetRenderer {
         rv.setImageViewResource(R.id.bg_fill, RADIUS_FILL[radiusIdx])
         rv.setInt(R.id.bg_fill, "setColorFilter", settings.bgColor or 0xFF000000.toInt())
         rv.setInt(R.id.bg_fill, "setImageAlpha", settings.opacity * 255 / 100)
-        rv.setImageViewResource(R.id.bg_outline, RADIUS_OUTLINE[radiusIdx])
+        val outline = settings.outlineWidth.toFloat()
+        // fill ends under the middle of the stroke so nothing peeks out at rounded corners
+        val fillInset = (outline / 2f * density).roundToInt()
+        rv.setViewPadding(R.id.bg_fill, fillInset, fillInset, fillInset, fillInset)
+        rv.setImageViewResource(R.id.bg_outline, OUTLINE_DRAWABLES[settings.outlineWidth - 1][radiusIdx])
         rv.setInt(R.id.bg_outline, "setColorFilter", settings.outlineColor)
 
-        val padH = OUTLINE + max(4f, settings.cornerRadius * 0.35f)
-        val padV = OUTLINE
+        val padH = outline + max(4f, settings.cornerRadius * 0.35f)
+        val padV = outline
         rv.setViewPadding(R.id.content, px(padH), px(padV), px(padH), px(padV))
         val wc = max(size.width - 2 * padH, 40f)
         val hc = max(size.height - 2 * padV, 24f)
@@ -92,7 +98,7 @@ object WidgetRenderer {
         // ---- decide layout ----
         var m = MainMetrics.compute(hc, tempText, currentWx?.color)
         val minColumn = (hc * 0.42f).coerceIn(30f, 60f)
-        val stripe = wc - m.width - SEPARATOR
+        val stripe = wc - m.width - outline // separator is as wide as the outline
         val showForecast = stripe >= minColumn
         if (!showForecast) m = m.scaledToFit(wc)
 
@@ -138,6 +144,7 @@ object WidgetRenderer {
         rv.setViewVisibility(R.id.separator, View.VISIBLE)
         rv.setViewVisibility(R.id.forecast_container, View.VISIBLE)
         rv.setInt(R.id.separator, "setBackgroundColor", settings.outlineColor)
+        rv.setViewLayoutWidth(R.id.separator, outline, COMPLEX_UNIT_DIP)
         val sepGap = max(4f, hc * 0.12f)
         rv.setViewLayoutMargin(R.id.separator, RemoteViews.MARGIN_TOP, sepGap, COMPLEX_UNIT_DIP)
         rv.setViewLayoutMargin(R.id.separator, RemoteViews.MARGIN_BOTTOM, sepGap, COMPLEX_UNIT_DIP)

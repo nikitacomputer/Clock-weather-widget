@@ -44,6 +44,11 @@ class Settings(context: Context) {
         get() = p.getInt("corner_radius", 0)
         set(v) = p.edit().putInt("corner_radius", RADII.minByOrNull { kotlin.math.abs(it - v) }!!).apply()
 
+    // 1.6: outline width in dp, also used for the separator
+    var outlineWidth: Int
+        get() = p.getInt("outline_width", 2).coerceIn(1, 5)
+        set(v) = p.edit().putInt("outline_width", v.coerceIn(1, 5)).apply()
+
     // 2.1 / 2.2: package names, null = default
     var clockApp: String?
         get() = p.getString("clock_app", null)

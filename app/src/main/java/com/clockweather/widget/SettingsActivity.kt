@@ -80,6 +80,7 @@ class SettingsActivity : Activity() {
             settings.outlineWhite = it == R.id.outline_white
         }
         setupRadius()
+        setupOutlineWidth()
         setupApps()
         bindRadio(R.id.forecast_group, if (settings.forecastMode == ForecastMode.DAILY) R.id.forecast_days else R.id.forecast_hours) {
             settings.forecastMode = if (it == R.id.forecast_hours) ForecastMode.HOURLY else ForecastMode.DAILY
@@ -221,7 +222,7 @@ class SettingsActivity : Activity() {
     private fun setupOpacity() {
         val title = findViewById<TextView>(R.id.opacity_title)
         val seek = findViewById<SeekBar>(R.id.seek_opacity)
-        fun label(v: Int) { title.text = "1.2 Opacity: $v%" }
+        fun label(v: Int) { title.text = "Opacity: $v%" }
         seek.progress = settings.opacity
         label(settings.opacity)
         seek.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -251,6 +252,23 @@ class SettingsActivity : Activity() {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
                 if (settings.cornerRadius != Settings.RADII[pos]) {
                     settings.cornerRadius = Settings.RADII[pos]
+                    changed()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+    }
+
+    // ---------- 1.6 outline width ----------
+    private fun setupOutlineWidth() {
+        val spinner = findViewById<Spinner>(R.id.outline_width_spinner)
+        val widths = (1..5).toList()
+        spinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, widths.map { "$it" })
+        spinner.setSelection(settings.outlineWidth - 1)
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, pos: Int, id: Long) {
+                if (settings.outlineWidth != widths[pos]) {
+                    settings.outlineWidth = widths[pos]
                     changed()
                 }
             }
