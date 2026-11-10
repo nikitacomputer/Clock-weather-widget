@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Clock Weather</string>
+    <string name="widget_name">Clock + Weather</string>
+    <string name="widget_description">Time, current weather and a scrollable 10 day / 10 hour forecast in one row.</string>
+</resources>

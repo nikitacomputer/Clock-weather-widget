@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Static preview shown in the launcher's widget picker. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_static_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="2dp">
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginStart="10dp" android:text="10:09"
+        android:textColor="@color/main_dark" android:textSize="26sp" />
+    <ImageView android:layout_width="38dp" android:layout_height="38dp"
+        android:layout_marginStart="8dp" android:src="@drawable/wx_partly_cloudy" />
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_marginStart="2dp" android:layout_marginEnd="10dp" android:text="18°"
+        android:textColor="@color/secondary_dark" android:textSize="26sp" />
+    <ImageView android:layout_width="2dp" android:layout_height="match_parent"
+        android:layout_marginTop="8dp" android:layout_marginBottom="8dp"
+        android:src="@drawable/separator_static" />
+    <LinearLayout android:layout_width="0dp" android:layout_height="match_parent"
+        android:layout_weight="1" android:orientation="horizontal">
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Wed" android:textColor="@color/secondary_dark" android:textSize="11sp" />
+            <ImageView android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/wx_rain_outline" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="14°" android:textColor="@color/main_dark" android:textSize="14sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Thu" android:textColor="@color/secondary_dark" android:textSize="11sp" />
+            <ImageView android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/wx_cloudy_outline" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="16°" android:textColor="@color/main_dark" android:textSize="14sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Fri" android:textColor="@color/secondary_dark" android:textSize="11sp" />
+            <ImageView android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/wx_partly_cloudy_outline" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="19°" android:textColor="@color/main_dark" android:textSize="14sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
+            android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Sat" android:textColor="@color/secondary_dark" android:textSize="11sp" />
+            <ImageView android:layout_width="30dp" android:layout_height="30dp" android:src="@drawable/wx_clear_outline" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="22°" android:textColor="@color/main_dark" android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

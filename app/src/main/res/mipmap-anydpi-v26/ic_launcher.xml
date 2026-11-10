@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/widget_teal" />
+    <foreground>
+        <inset android:drawable="@drawable/wx_partly_cloudy" android:inset="27%" />
+    </foreground>
+    <monochrome>
+        <inset android:drawable="@drawable/wx_partly_cloudy_outline" android:inset="27%" />
+    </monochrome>
+</adaptive-icon>

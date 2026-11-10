@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One forecast column. Root is a list row (rotated -90 with the list); the content is
+     rotated +90 so it reads upright. Sizes are set at runtime. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_root"
+    android:layout_width="match_parent"
+    android:layout_height="48dp">
+
+    <LinearLayout
+        android:id="@+id/item_content"
+        android:layout_width="48dp"
+        android:layout_height="72dp"
+        android:layout_gravity="center"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:rotation="90">
+
+        <TextView
+            android:id="@+id/item_label"
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="@color/secondary_dark"
+            android:textSize="10sp" />
+
+        <ImageView
+            android:id="@+id/item_icon"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/item_temp"
+            android:layout_width="match_parent"
+            android:layout_height="18dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textColor="@color/main_dark"
+            android:textSize="13sp" />
+    </LinearLayout>
+</FrameLayout>
